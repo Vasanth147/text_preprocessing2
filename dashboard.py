@@ -6,25 +6,27 @@ import seaborn as sns
 from wordcloud import WordCloud
 from collections import Counter
 
-# Set page configuration
-st.set_page_config(page_title="Women’s Cricket Insights", layout="wide")
-
-# Custom CSS to change background color to white
+# Custom CSS to ensure black text and white background
 st.markdown(
     """
     <style>
         body {
             background-color: white !important;
+            color: black !important;
         }
         .stApp {
             background-color: white;
+            color: black;
+        }
+        h1, h2, h3, h4, h5, h6, p, div {
+            color: black !important;
         }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Sample data
+# Sample Data
 data = [
     {"headline": "MI Women Crush UP Warriorz!", "entities": {'ORG': 'MI Women'}, "vader": -0.2244, "textblob": 0.0, "source": "Cricket Times", "likes": 66, "comments": 12, "reposts": 0, "time": "4d"},
     {"headline": "Mumbai Indians Women Outclass UP Warriorz Women with an 8-Wicket Victory!", "entities": {'ORG': 'Mumbai Indians Women'}, "vader": 0.0, "textblob": 0.0, "source": "Cricket Buzz", "likes": 50, "comments": 15, "reposts": 2, "time": "3d"},
@@ -35,7 +37,7 @@ data = [
 
 df = pd.DataFrame(data)
 
-# Function to categorize sentiment
+# Sentiment Categorization
 def categorize_sentiment(vader_score):
     if vader_score > 0.2:
         return "Positive"
@@ -45,6 +47,8 @@ def categorize_sentiment(vader_score):
         return "Neutral"
 
 df["sentiment_category"] = df["vader"].apply(categorize_sentiment)
+
+# Convert time (e.g., "4d") into integer days
 df["days_ago"] = df["time"].apply(lambda x: int(x.replace("d", "")))
 
 # Extracting entity mentions
@@ -55,10 +59,12 @@ for row in df["entities"]:
 entity_counts = Counter(entity_list)
 top_entities = entity_counts.most_common(10)
 
-# Dashboard Title
+# Streamlit App Layout
+st.set_page_config(page_title="Women’s Cricket Insights", layout="wide")
+
 st.title("Women’s Cricket News Dashboard")
 
-# Trending News Table
+# Top Headlines by Engagement
 st.subheader("Trending News (Top Headlines by Engagement)")
 top_news = df.sort_values(by=["likes", "comments", "reposts"], ascending=False)
 st.table(top_news[["headline", "likes", "comments", "reposts"]].head(5))
@@ -72,7 +78,6 @@ st.plotly_chart(fig)
 
 # Most Mentioned Players & Teams
 st.subheader("Most Mentioned Players & Teams")
-
 wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(entity_counts)
 plt.figure(figsize=(10, 5))
 plt.imshow(wordcloud, interpolation="bilinear")
@@ -91,12 +96,17 @@ engagement_metrics = df.groupby("source")[["likes", "comments", "reposts"]].sum(
 fig = px.bar(engagement_metrics, barmode="group", title="Engagement by Platform", labels={"value": "Count", "variable": "Metric"})
 st.plotly_chart(fig)
 
-# Key Inferences & Conclusions
+# Key Insights Section
 st.subheader("Key Inferences & Conclusions")
-st.markdown("""
-- **Most Engagement:** "Smriti Mandhana’s Century Powers India" had the highest engagement.
-- **Sentiment Trends:** Mixed emotions; Smriti Mandhana’s century had the most **positive** sentiment.
-- **Top Players & Teams:** Mumbai Indians Women & Harmanpreet Kaur were frequently mentioned.
-- **Audience Engagement:** "Cricket Times" and "Cricket Buzz" had the most audience interaction.
-- **News Cycle Impact:** Engagement spikes for big events (matches, contracts, rankings).
-""")
+st.markdown(
+    """
+    <div style="color: black; font-size: 16px;">
+    - **Most Engagement:** "Smriti Mandhana’s Century Powers India" had the highest engagement.<br>
+    - **Sentiment Trends:** Mixed emotions; Smriti Mandhana’s century had the most **positive** sentiment.<br>
+    - **Top Players & Teams:** Mumbai Indians Women & Harmanpreet Kaur were frequently mentioned.<br>
+    - **Audience Engagement:** "Cricket Times" and "Cricket Buzz" had the most audience interaction.<br>
+    - **News Cycle Impact:** Engagement spikes for big events (matches, contracts, rankings).<br>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
